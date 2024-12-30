@@ -135,6 +135,15 @@ func TestErr2(t *testing.T) {
 	}
 }
 
+func TestEmpty(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 10)
+
+	if ech.Err() != nil {
+		t.Fatal("Error was not expected")
+	}
+}
+
 func TestEmptyWithDo(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)

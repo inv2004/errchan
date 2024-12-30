@@ -16,6 +16,7 @@ type errChan[T any] struct {
 }
 
 func (ech *errChan[T]) Err() error {
+	ech.done()
 	ech.wg.Wait()
 	return ech.err
 }

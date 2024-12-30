@@ -11,14 +11,14 @@ func TestOk(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 0)
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			ch <- i
 		}
 		return nil
 	})
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -46,7 +46,7 @@ func TestErr(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			ch <- i
 			time.Sleep(10 * time.Millisecond)
@@ -57,7 +57,7 @@ func TestErr(t *testing.T) {
 		return nil
 	})
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
 			time.Sleep(50 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -69,7 +69,7 @@ func TestErr(t *testing.T) {
 	})
 
 	expErr := errors.New("failFirst")
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		return expErr
 	})
 
@@ -91,7 +91,7 @@ func TestErr2(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -105,7 +105,7 @@ func TestErr2(t *testing.T) {
 		return nil
 	})
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
 			time.Sleep(20 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -117,7 +117,7 @@ func TestErr2(t *testing.T) {
 	})
 
 	expErr := errors.New("failFirst")
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		return expErr
 	})
 
@@ -139,7 +139,7 @@ func TestEmptyWithDo(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i < 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -186,7 +186,7 @@ func TestWithoutRead(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
 
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -207,7 +207,7 @@ func TestWithoutReadErr(t *testing.T) {
 	ech := WithContext[int](ctx, 10)
 
 	expErr := errors.New("failOne")
-	ech.Do(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {

@@ -36,7 +36,7 @@ func WithContext[T any](ctx context.Context, bufSize int) *errChan[T] {
 	return ech
 }
 
-func (ech *errChan[T]) Do(fn func(ctx context.Context, ch chan<- T) error) {
+func (ech *errChan[T]) Go(fn func(ctx context.Context, ch chan<- T) error) {
 	ech.wg.Add(1)
 	ech.done()
 	go func() {

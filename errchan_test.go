@@ -7,6 +7,21 @@ import (
 	"time"
 )
 
+func checkErrChan[T any](t *testing.T, ech *errChan[T], expErr error) {
+	if ech.Err() != expErr {
+		if expErr == nil {
+			t.Fatal("Error was not expected")
+		} else {
+			t.Fatal("Error is not correct")
+		}
+	}
+
+	_, ok := <-ech.ch
+	if ok {
+		t.Fatal("Chan was not closed")
+	}
+}
+
 func TestGoReadErr(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 0)
@@ -33,9 +48,7 @@ func TestGoReadErr(t *testing.T) {
 		acc += x
 	}
 
-	if ech.Err() != nil {
-		t.Fatal("Error was not expected")
-	}
+	checkErrChan(t, ech, nil)
 
 	if acc != 36 {
 		t.Fatal("Data is not correct")
@@ -44,7 +57,7 @@ func TestGoReadErr(t *testing.T) {
 
 func TestGoReadErr1(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech := WithContext[int](ctx, 0)
 
 	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
@@ -77,10 +90,7 @@ func TestGoReadErr1(t *testing.T) {
 	for x := range ech.Chan() {
 		acc += x
 	}
-
-	if ech.Err() != expErr {
-		t.Fatal("Error is not correct")
-	}
+	checkErrChan(t, ech, expErr)
 
 	if acc != 3 {
 		t.Fatal("Data is not correct")
@@ -89,7 +99,7 @@ func TestGoReadErr1(t *testing.T) {
 
 func TestGoReadErr2(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech := WithContext[int](ctx, 0)
 
 	ech.Go(func(ctx context.Context, ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
@@ -126,9 +136,7 @@ func TestGoReadErr2(t *testing.T) {
 		acc += x
 	}
 
-	if ech.Err() != expErr {
-		t.Fatal("Error is not correct")
-	}
+	checkErrChan(t, ech, expErr)
 
 	if acc != 0 {
 		t.Fatal("Data is not correct")
@@ -150,9 +158,7 @@ func TestGoWOReadErr(t *testing.T) {
 		return nil
 	})
 
-	if ech.Err() != nil {
-		t.Fatal("Error was not expected")
-	}
+	checkErrChan(t, ech, nil)
 }
 
 func TestGoWOReadErr1(t *testing.T) {
@@ -174,23 +180,19 @@ func TestGoWOReadErr1(t *testing.T) {
 		return nil
 	})
 
-	if ech.Err() != expErr {
-		t.Fatal("Error is not correct")
-	}
+	checkErrChan(t, ech, expErr)
 }
 
 func TestWOGoReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech := WithContext[int](ctx, 0)
 
 	acc := 0
 	for x := range ech.Chan() {
 		acc += x
 	}
 
-	if ech.Err() != nil {
-		t.Fatal("Error was not expected")
-	}
+	checkErrChan(t, ech, nil)
 
 	if acc != 0 {
 		t.Fatal("Data is not correct")
@@ -199,9 +201,54 @@ func TestWOGoReadErr(t *testing.T) {
 
 func TestWOGoWOReadErr(t *testing.T) {
 	ctx := context.Background()
+	ech := WithContext[int](ctx, 0)
+
+	checkErrChan(t, ech, nil)
+}
+
+func TestGoErrRead(t *testing.T) {
+	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
+
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
+		for i := 0; i <= 3; i++ {
+			time.Sleep(10 * time.Millisecond)
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			ch <- i
+		}
+		return nil
+	})
 
 	if ech.Err() != nil {
 		t.Fatal("Error was not expected")
+	}
+
+	acc := 0
+	for x := range ech.Chan() {
+		acc += x
+	}
+
+	if acc != 0 {
+		t.Fatalf("Data is not correct: acc = %d", acc)
+	}
+}
+
+func TestWOGoErrRead(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 0)
+
+	if ech.Err() != nil {
+		t.Fatal("Error was not expected")
+	}
+
+	acc := 0
+	for x := range ech.Chan() {
+		acc += x
+	}
+
+	if acc != 0 {
+		t.Fatal("Data is not correct")
 	}
 }

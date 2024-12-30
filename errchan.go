@@ -12,12 +12,13 @@ type errChan[T any] struct {
 	err     error
 	runOnce sync.Once
 	errOnce sync.Once
-	wg      sync.WaitGroup
+	wgGo    sync.WaitGroup
+	wgDone  sync.WaitGroup
 }
 
 func (ech *errChan[T]) Err() error {
 	ech.done()
-	ech.wg.Wait()
+	ech.wgDone.Wait()
 	return ech.err
 }
 
@@ -38,10 +39,10 @@ func WithContext[T any](ctx context.Context, bufSize int) *errChan[T] {
 }
 
 func (ech *errChan[T]) Go(fn func(ctx context.Context, ch chan<- T) error) {
-	ech.wg.Add(1)
+	ech.wgGo.Add(1)
 	ech.done()
 	go func() {
-		defer ech.wg.Done()
+		defer ech.wgGo.Done()
 		if err := fn(ech.ctx, ech.ch); err != nil {
 			ech.errOnce.Do(func() {
 				ech.err = err
@@ -53,9 +54,13 @@ func (ech *errChan[T]) Go(fn func(ctx context.Context, ch chan<- T) error) {
 
 func (ech *errChan[T]) done() {
 	ech.runOnce.Do(func() {
+		ech.wgDone.Add(1)
 		go func() {
-			ech.wg.Wait()
+			defer ech.wgDone.Done()
+			ech.wgGo.Wait()
 			close(ech.ch)
+			for range ech.ch { // TODO: not sure if we need to drain
+			}
 		}()
 	})
 }

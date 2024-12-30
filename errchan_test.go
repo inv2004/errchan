@@ -144,7 +144,7 @@ func TestEmpty(t *testing.T) {
 	}
 }
 
-func TestEmptyWithDo(t *testing.T) {
+func TestEmptyWithGo(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
 
@@ -173,7 +173,7 @@ func TestEmptyWithDo(t *testing.T) {
 	}
 }
 
-func TestEmptyWithoutDo(t *testing.T) {
+func TestEmptyWithoutGo(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 10)
 

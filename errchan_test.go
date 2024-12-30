@@ -29,7 +29,7 @@ func TestOk(t *testing.T) {
 	})
 
 	acc := 0
-	for x := range ech.ch {
+	for x := range ech.Chan() {
 		acc += x
 	}
 
@@ -59,11 +59,11 @@ func TestErr(t *testing.T) {
 
 	ech.Do(func(ctx context.Context, ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
+			time.Sleep(50 * time.Millisecond)
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
 			ch <- i
-			time.Sleep(20 * time.Millisecond)
 		}
 		return nil
 	})
@@ -74,7 +74,7 @@ func TestErr(t *testing.T) {
 	})
 
 	acc := 0
-	for x := range ech.ch {
+	for x := range ech.Chan() {
 		acc += x
 	}
 
@@ -122,7 +122,7 @@ func TestErr2(t *testing.T) {
 	})
 
 	acc := 0
-	for x := range ech.ch {
+	for x := range ech.Chan() {
 		acc += x
 	}
 
@@ -132,5 +132,96 @@ func TestErr2(t *testing.T) {
 
 	if acc != 0 {
 		t.Fatal("Data is not correct")
+	}
+}
+
+func TestEmptyWithDo(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 10)
+
+	ech.Do(func(ctx context.Context, ch chan<- int) error {
+		for i := 0; i < 3; i++ {
+			time.Sleep(10 * time.Millisecond)
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			ch <- i
+		}
+		return nil
+	})
+
+	acc := 0
+	for x := range ech.Chan() {
+		acc += x
+	}
+
+	if ech.Err() != nil {
+		t.Fatal("Error was not expected")
+	}
+
+	if acc != 3 {
+		t.Fatal("Data is not correct")
+	}
+}
+
+func TestEmptyWithoutDo(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 10)
+
+	acc := 0
+	for x := range ech.Chan() {
+		acc += x
+	}
+
+	if ech.Err() != nil {
+		t.Fatal("Error was not expected")
+	}
+
+	if acc != 0 {
+		t.Fatal("Data is not correct")
+	}
+}
+
+func TestWithoutRead(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 10)
+
+	ech.Do(func(ctx context.Context, ch chan<- int) error {
+		for i := 0; i <= 3; i++ {
+			time.Sleep(10 * time.Millisecond)
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			ch <- i
+		}
+		return nil
+	})
+
+	if ech.Err() != nil {
+		t.Fatal("Error was not expected")
+	}
+}
+
+func TestWithoutReadErr(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 10)
+
+	expErr := errors.New("failOne")
+	ech.Do(func(ctx context.Context, ch chan<- int) error {
+		for i := 0; i <= 3; i++ {
+			time.Sleep(10 * time.Millisecond)
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			ch <- i
+			if i == 2 {
+				return expErr
+			}
+		}
+		return nil
+	})
+
+	if ech.Err() != expErr {
+		t.Fatal("Error is not correct")
 	}
 }

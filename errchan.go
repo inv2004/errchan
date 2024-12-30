@@ -5,40 +5,40 @@ import (
 	"sync"
 )
 
-type ErrChan[T any] struct {
+type errChan[T any] struct {
 	ctx     context.Context
-	cancel  func()
-	wg      *sync.WaitGroup
 	ch      chan T
+	cancel  func()
+	err     error
 	runOnce sync.Once
 	errOnce sync.Once
-	err     error
+	wg      sync.WaitGroup
 }
 
-func (ech *ErrChan[T]) Err() error {
+func (ech *errChan[T]) Err() error {
+	ech.wg.Wait()
 	return ech.err
 }
 
-func WithContext[T any](ctx context.Context, bufSize int) *ErrChan[T] {
-	cctx, cancel := context.WithCancel(ctx)
-
-	return &ErrChan[T]{
-		ctx:    cctx,
-		cancel: cancel,
-		wg:     &sync.WaitGroup{},
-		ch:     make(chan T, bufSize),
-	}
+func (ech *errChan[T]) Chan() <-chan T {
+	ech.done()
+	return ech.ch
 }
 
-func (ech *ErrChan[T]) Do(fn func(ctx context.Context, ch chan<- T) error) {
-	ech.wg.Add(1)
-	ech.runOnce.Do(func() {
-		go func() {
-			ech.wg.Wait()
-			close(ech.ch)
-		}()
-	})
+func WithContext[T any](ctx context.Context, bufSize int) *errChan[T] {
+	cctx, cancel := context.WithCancel(ctx)
 
+	ech := &errChan[T]{
+		ctx:    cctx,
+		cancel: cancel,
+		ch:     make(chan T, bufSize),
+	}
+	return ech
+}
+
+func (ech *errChan[T]) Do(fn func(ctx context.Context, ch chan<- T) error) {
+	ech.wg.Add(1)
+	ech.done()
 	go func() {
 		defer ech.wg.Done()
 		if err := fn(ech.ctx, ech.ch); err != nil {
@@ -48,4 +48,13 @@ func (ech *ErrChan[T]) Do(fn func(ctx context.Context, ch chan<- T) error) {
 			})
 		}
 	}()
+}
+
+func (ech *errChan[T]) done() {
+	ech.runOnce.Do(func() {
+		go func() {
+			ech.wg.Wait()
+			close(ech.ch)
+		}()
+	})
 }

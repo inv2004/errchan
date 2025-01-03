@@ -2,14 +2,14 @@ Make (golang) Channels Great Again
 
 # errchan
 
-Structure which covers work with channel, context, cancellation and goroutine error-handling under the one hood
+The structure covers work with channels, context, cancellations and goroutine error-handling under the same hood
 
 # Motivation
-Golang channels are powerful communication mechanism between goroutines, unfortunately there are few challenges how to control, cancel and handle errors using channels. 
+Golang channels are a powerful communication mechanism for goroutines. Unfortunately, there are some challenges in controlling, cancelling and handling errors using channels. 
 
-There some helpers for like https://pkg.go.dev/golang.org/x/sync/errgroup, but the `errchan` mod adds channel and context also.
+There are some helpers like https://pkg.go.dev/golang.org/x/sync/errgroup but the `errchan` mod also adds channels and context.
 
-The main motivation is to have a structure which can be returned like a channel from any function and take care of all the stuff like: create, close, drain and error-control of the called goroutines which can be not easy.
+The main motivation is to have create a structure that can be returned as a channel from any function and takes care of all the stuff like creating, closing and error-control for the called goroutine, which can be difficult and tricky if you implement it using just basic types.
 
 # Example:
 ```go

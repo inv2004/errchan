@@ -1,10 +1,11 @@
-# errchan
 Make (golang) Channels Great Again
 
-Helper structure provides which covers channel, context and goroutine error-handling under the one hood
+# errchan
+
+Structure which covers work with channel, context, cancellation and goroutine error-handling under the one hood
 
 # Motivation
-Golang channels are powerful communication mechanism between goroutines, unfortunately there are few challenges how to control, cancel and handle errors using channels
+Golang channels are powerful communication mechanism between goroutines, unfortunately there are few challenges how to control, cancel and handle errors using channels. 
 
 There some helpers for like https://pkg.go.dev/golang.org/x/sync/errgroup, but the `errchan` mod adds channel and context also.
 

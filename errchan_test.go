@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func checkErrChan[T any](t *testing.T, ech *errChan[T], expErr error) {
+func checkErrChan[T any](t *testing.T, ech *Chan[T], expErr error) {
 	if ech.Err() != expErr {
 		if expErr == nil {
 			t.Fatal("Error was not expected")

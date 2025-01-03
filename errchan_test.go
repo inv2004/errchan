@@ -227,6 +227,7 @@ func TestGoErrRead(t *testing.T) {
 
 	acc := 0
 	for x := range ech.Chan() {
+		t.Fatal("Channel should be closed already")
 		acc += x
 	}
 

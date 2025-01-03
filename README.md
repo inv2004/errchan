@@ -1,6 +1,6 @@
 Make (golang) Channels Great Again
 
-# errchan
+# `errchan.Chan`
 
 The structure covers work with channels, context, cancellations and goroutine error-handling under the same hood
 

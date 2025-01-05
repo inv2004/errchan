@@ -47,3 +47,6 @@ func main() {
     fmt.Println(ech.Err()) // fail
 }
 ```
+
+# TODO
+- Add `.SetLimit` to limit number of goroutines

@@ -19,6 +19,8 @@ type Chan[T any] struct {
 func (ech *Chan[T]) Err() error {
 	ech.done()
 	ech.wgDone.Wait()
+	for range ech.ch { // TODO: not sure if we need to drain
+	}
 	return ech.err
 }
 
@@ -58,8 +60,6 @@ func (ech *Chan[T]) done() {
 			defer ech.wgDone.Done()
 			ech.wgGo.Wait()
 			close(ech.ch)
-			for range ech.ch { // TODO: not sure if we need to drain
-			}
 		}()
 	})
 }

@@ -309,3 +309,41 @@ func TestGoDelayReadDelayReadErr(t *testing.T) {
 		t.Fatal("Data is not correct")
 	}
 }
+
+func TestGoDelayGo(t *testing.T) {
+	ctx := context.Background()
+	ech := WithContext[int](ctx, 10)
+
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
+		for i := 0; i <= 3; i++ {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			ch <- i
+		}
+		return nil
+	})
+
+	time.Sleep(10 * time.Millisecond)
+
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
+		for i := 4; i <= 7; i++ {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			ch <- i
+		}
+		return nil
+	})
+
+	acc := 0
+	for x := range ech.Chan() {
+		acc += x
+	}
+
+	checkErrChan(t, ech, nil)
+
+	if acc != 28 {
+		t.Fatalf("Data is not correct %d", acc)
+	}
+}

@@ -40,7 +40,6 @@ func WithContext[T any](ctx context.Context, bufSize int) *Chan[T] {
 
 func (ech *Chan[T]) Go(fn func(ctx context.Context, ch chan<- T) error) {
 	ech.wgGo.Add(1)
-	ech.done()
 	go func() {
 		defer ech.wgGo.Done()
 		if err := fn(ech.ctx, ech.ch); err != nil {

@@ -305,8 +305,8 @@ func TestGoDelayReadDelayReadErr(t *testing.T) {
 
 	checkErrChan(t, ech, nil)
 
-	if acc != 0 {
-		t.Fatal("Data is not correct")
+	if acc != 6 {
+		t.Fatalf("Data is not correct: %d", acc)
 	}
 }
 

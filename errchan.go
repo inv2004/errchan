@@ -18,9 +18,13 @@ type Chan[T any] struct {
 	wgDone    sync.WaitGroup
 }
 
-func (ech *Chan[T]) Err() error {
+func (ech *Chan[T]) Close() {
 	ech.done()
 	ech.drain()
+}
+
+func (ech *Chan[T]) Err() error {
+	ech.Close()
 	return ech.err
 }
 

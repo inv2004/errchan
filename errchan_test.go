@@ -378,6 +378,7 @@ func TestGoReturn(t *testing.T) {
 	ctx := context.Background()
 
 	ech := writer(ctx)
+	defer ech.Close()
 	acc := reader(ech)
 
 	// no ech.Err() call here to check if is close chan
@@ -387,5 +388,18 @@ func TestGoReturn(t *testing.T) {
 	}
 	if acc != 1 {
 		t.Fatalf("Data is not correct %d", acc)
+	}
+}
+
+func TestClose(t *testing.T) {
+	ctx := context.Background()
+
+	ech := writer(ctx)
+	ech.Close()
+
+	// no ech.Err() call here to check if is close chan
+	_, ok := <-ech.ch
+	if ok {
+		t.Fatal("Chan was not closed")
 	}
 }

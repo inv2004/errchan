@@ -378,7 +378,6 @@ func TestGoReturn(t *testing.T) {
 	ctx := context.Background()
 
 	ech := writer(ctx)
-	defer ech.Close()
 	acc := reader(ech)
 
 	// no ech.Err() call here to check if is close chan

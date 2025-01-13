@@ -347,3 +347,45 @@ func TestGoDelayGo(t *testing.T) {
 		t.Fatalf("Data is not correct %d", acc)
 	}
 }
+
+func writer(ctx context.Context) *Chan[int] {
+	ech := WithContext[int](ctx, 10)
+
+	ech.Go(func(ctx context.Context, ch chan<- int) error {
+		time.Sleep(100 * time.Millisecond)
+		for i := 1; i <= 3; i++ {
+			ch <- i
+		}
+		return nil
+	})
+
+	return ech
+}
+
+func reader(ech *Chan[int]) int {
+	acc := 0
+	for x := range ech.Chan() {
+		if x >= 2 {
+			return acc
+		}
+		acc += x
+	}
+
+	return acc
+}
+
+func TestGoReturn(t *testing.T) {
+	ctx := context.Background()
+
+	ech := writer(ctx)
+	acc := reader(ech)
+
+	// no ech.Err() call here to check if is close chan
+	_, ok := <-ech.ch
+	if ok {
+		t.Fatal("Chan was not closed")
+	}
+	if acc != 1 {
+		t.Fatalf("Data is not correct %d", acc)
+	}
+}

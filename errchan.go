@@ -2,7 +2,6 @@ package errchan
 
 import (
 	"context"
-	"iter"
 	"sync"
 )
 
@@ -18,26 +17,15 @@ type Chan[T any] struct {
 	wgDone    sync.WaitGroup
 }
 
-func (ech *Chan[T]) Close() {
-	ech.done()
-	ech.drain()
-}
-
 func (ech *Chan[T]) Err() error {
-	ech.Close()
+	ech.done()
+	ech.wgDone.Wait()
 	return ech.err
 }
 
-func (ech *Chan[T]) Chan() iter.Seq[T] {
-	return func(yield func(T) bool) {
-		ech.done()
-		for x := range ech.ch {
-			if !yield(x) {
-				break
-			}
-		}
-		ech.drain()
-	}
+func (ech *Chan[T]) Chan() <-chan T {
+	ech.done()
+	return ech.ch
 }
 
 func WithContext[T any](ctx context.Context, bufSize int) *Chan[T] {
@@ -72,13 +60,5 @@ func (ech *Chan[T]) done() {
 			ech.wgGo.Wait()
 			close(ech.ch)
 		}()
-	})
-}
-
-func (ech *Chan[T]) drain() {
-	ech.drainOnce.Do(func() {
-		ech.wgDone.Wait()
-		for range ech.ch { // TODO: not sure if we need to drain
-		}
 	})
 }

@@ -7,19 +7,25 @@ import (
 	"time"
 )
 
-func checkErrChan[T any](t *testing.T, ech *Chan[T], expErr error) {
+func checkErrChan[T any](ech *Chan[T], expErr error, expClose bool) error {
 	if ech.Err() != expErr {
 		if expErr == nil {
-			t.Fatal("Error was not expected")
+			return errors.New("Error was not expected")
 		} else {
-			t.Fatal("Error is not correct")
+			return errors.New("Error is not correct")
 		}
 	}
 
 	_, ok := <-ech.ch
-	if ok {
-		t.Fatal("Chan was not closed")
+	if expClose == ok {
+		if ok {
+			return errors.New("Chan was not closed")
+		} else {
+			return errors.New("Chan was closed")
+		}
 	}
+
+	return nil
 }
 
 func TestGoReadErr(t *testing.T) {
@@ -48,7 +54,9 @@ func TestGoReadErr(t *testing.T) {
 		acc += x
 	}
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 36 {
 		t.Fatal("Data is not correct")
@@ -90,7 +98,9 @@ func TestGoReadErr1(t *testing.T) {
 	for x := range ech.Chan() {
 		acc += x
 	}
-	checkErrChan(t, ech, expErr)
+	if err := checkErrChan(ech, expErr, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 3 {
 		t.Fatal("Data is not correct")
@@ -136,7 +146,9 @@ func TestGoReadErr2(t *testing.T) {
 		acc += x
 	}
 
-	checkErrChan(t, ech, expErr)
+	if err := checkErrChan(ech, expErr, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 0 {
 		t.Fatal("Data is not correct")
@@ -158,7 +170,9 @@ func TestGoWOReadErr(t *testing.T) {
 		return nil
 	})
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, false); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestGoWOReadErr1(t *testing.T) {
@@ -180,7 +194,9 @@ func TestGoWOReadErr1(t *testing.T) {
 		return nil
 	})
 
-	checkErrChan(t, ech, expErr)
+	if err := checkErrChan(ech, expErr, false); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestWOGoReadErr(t *testing.T) {
@@ -192,7 +208,9 @@ func TestWOGoReadErr(t *testing.T) {
 		acc += x
 	}
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 0 {
 		t.Fatal("Data is not correct")
@@ -203,7 +221,9 @@ func TestWOGoWOReadErr(t *testing.T) {
 	ctx := context.Background()
 	ech := WithContext[int](ctx, 0)
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, true); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestGoErrRead(t *testing.T) {
@@ -227,11 +247,10 @@ func TestGoErrRead(t *testing.T) {
 
 	acc := 0
 	for x := range ech.Chan() {
-		t.Fatal("Channel should be closed already")
 		acc += x
 	}
 
-	if acc != 0 {
+	if acc != 6 {
 		t.Fatalf("Data is not correct: acc = %d", acc)
 	}
 }
@@ -274,7 +293,9 @@ func TestGoDelayReadErr(t *testing.T) {
 		acc += x
 	}
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 6 {
 		t.Fatal("Data is not correct")
@@ -303,7 +324,9 @@ func TestGoDelayReadDelayReadErr(t *testing.T) {
 		acc += x
 	}
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 6 {
 		t.Fatalf("Data is not correct: %d", acc)
@@ -341,7 +364,9 @@ func TestGoDelayGo(t *testing.T) {
 		acc += x
 	}
 
-	checkErrChan(t, ech, nil)
+	if err := checkErrChan(ech, nil, true); err != nil {
+		t.Fatal(err)
+	}
 
 	if acc != 28 {
 		t.Fatalf("Data is not correct %d", acc)
@@ -352,7 +377,6 @@ func writer(ctx context.Context) *Chan[int] {
 	ech := WithContext[int](ctx, 10)
 
 	ech.Go(func(ctx context.Context, ch chan<- int) error {
-		time.Sleep(100 * time.Millisecond)
 		for i := 1; i <= 3; i++ {
 			ch <- i
 		}
@@ -382,8 +406,8 @@ func TestGoReturn(t *testing.T) {
 
 	// no ech.Err() call here to check if is close chan
 	_, ok := <-ech.ch
-	if ok {
-		t.Fatal("Chan was not closed")
+	if !ok {
+		t.Fatal("Chan was closed")
 	}
 	if acc != 1 {
 		t.Fatalf("Data is not correct %d", acc)
@@ -392,13 +416,11 @@ func TestGoReturn(t *testing.T) {
 
 func TestClose(t *testing.T) {
 	ctx := context.Background()
-
 	ech := writer(ctx)
-	ech.Close()
 
 	// no ech.Err() call here to check if is close chan
 	_, ok := <-ech.ch
-	if ok {
-		t.Fatal("Chan was not closed")
+	if !ok {
+		t.Fatal("Chan was closed")
 	}
 }

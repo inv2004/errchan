@@ -17,7 +17,7 @@ func slowReader(ctx context.Context) *errchan.Chan[int] {
 			time.Sleep(1 * time.Second)
 			ch <- i
 		}
-		return errors.New("fail")
+		return errors.New("readerFail")
 	})
 
 	return ech
@@ -36,5 +36,5 @@ func main() {
 	fmt.Println(time.Since(n))
 
 	fmt.Println(acc)       // 6
-	fmt.Println(ech.Err()) // fail
+	fmt.Println(ech.Err()) // readerFail
 }

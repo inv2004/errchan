@@ -17,9 +17,15 @@ type Chan[T any] struct {
 	wgDone    sync.WaitGroup
 }
 
-func (ech *Chan[T]) Err() error {
+func (ech *Chan[T]) Wait() {
 	ech.done()
 	ech.wgDone.Wait()
+	// for range ech.ch { // TODO: not sure if we need to drain
+	// }
+}
+
+func (ech *Chan[T]) Err() error {
+	ech.Wait()
 	return ech.err
 }
 
@@ -56,9 +62,9 @@ func (ech *Chan[T]) done() {
 	ech.runOnce.Do(func() {
 		ech.wgDone.Add(1)
 		go func() {
-			defer ech.wgDone.Done()
 			ech.wgGo.Wait()
 			close(ech.ch)
+			ech.wgDone.Done()
 		}()
 	})
 }

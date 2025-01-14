@@ -377,6 +377,7 @@ func writer(ctx context.Context) *Chan[int] {
 	ech := WithContext[int](ctx, 10)
 
 	ech.Go(func(ctx context.Context, ch chan<- int) error {
+		time.Sleep(10 * time.Millisecond)
 		for i := 1; i <= 3; i++ {
 			ch <- i
 		}
@@ -417,6 +418,7 @@ func TestGoReturn(t *testing.T) {
 func TestClose(t *testing.T) {
 	ctx := context.Background()
 	ech := writer(ctx)
+	ech.Wait()
 
 	// no ech.Err() call here to check if is close chan
 	_, ok := <-ech.ch

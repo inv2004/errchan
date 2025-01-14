@@ -415,7 +415,7 @@ func TestGoReturn(t *testing.T) {
 	}
 }
 
-func TestClose(t *testing.T) {
+func TestWait(t *testing.T) {
 	ctx := context.Background()
 	ech := writer(ctx)
 	ech.Wait()

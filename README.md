@@ -4,6 +4,9 @@ Make (golang) Channels Great Again
 
 The structure covers work with channels, context, cancellations and goroutine error-handling under the same hood
 
+# Documentation
+https://pkg.go.dev/github.com/inv2004/errchan
+
 # Motivation
 Golang channels are a powerful communication mechanism for goroutines. Unfortunately, there are some challenges in controlling, cancelling and handling errors using channels. 
 

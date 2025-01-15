@@ -18,47 +18,47 @@ https://go.dev/play/p/dI40gU9DeZT
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
+    "context"
+    "errors"
+    "fmt"
 
-	"github.com/inv2004/errchan"
+    "github.com/inv2004/errchan"
 )
 
 func reader(ctx context.Context) *errchan.Chan[int] {
-	ech := errchan.WithContext[int](ctx, 10)
+    ech := errchan.WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+    ech.Go(func(ctx context.Context, ch chan<- int) error {
     // ctx is unused here, because just one goroutine
-		for i := 1; i <= 3; i++ {
-			ch <- i
-		}
-		return errors.New("readerError")
-	})
+    for i := 1; i <= 3; i++ {
+        ch <- i
+    }
+    return errors.New("readerError")
+  })
 
-	return ech
+    return ech
 }
 
 func writer(ech *errchan.Chan[int]) (int, error) {
-	cnt := 0
-	for x := range ech.Chan() {
-		cnt++
-		if x == 3 {
-			return cnt, errors.New("writerError")
-		}
-	}
+    cnt := 0
+    for x := range ech.Chan() {
+        cnt++
+        if x == 3 {
+            return cnt, errors.New("writerError")
+        }
+    }
 
-	return cnt, nil
+    return cnt, nil
 }
 
 func main() {
-	ctx := context.Background()
-	ech := reader(ctx)
-	cnt, err := writer(ech)
+    ctx := context.Background()
+    ech := reader(ctx)
+    cnt, err := writer(ech)
 
-	fmt.Println(err)       // writerError
-	fmt.Println(cnt)       // 3
-	fmt.Println(ech.Err()) // readerError
+    fmt.Println(err)       // writerError
+    fmt.Println(cnt)       // 3
+    fmt.Println(ech.Err()) // readerError
 }
 ```
 

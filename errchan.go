@@ -35,7 +35,7 @@ func WithContext[T any](ctx context.Context, bufSize int) *Chan[T] {
 
 // Starts a goroutine with a function that can return an error and receives a write channel and a context which can be cancelled.
 // The first goroutine returns error can be extracted with [Chan.Err] later.
-// the channel automatically closes after all related goroutines complete.
+// The channel automatically closes after all related goroutines complete.
 func (ech *Chan[T]) Go(fn func(ctx context.Context, ch chan<- T) error) {
 	ech.wgGo.Add(1)
 	go func() {

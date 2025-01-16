@@ -55,7 +55,7 @@ func (ech *Chan[T]) Chan() <-chan T {
 	return ech.ch
 }
 
-// Err waits until all goroutines finis and returns an error if any of them return an error, otherwise nil.
+// Err waits until all goroutines finish and returns an error if any of them return an error, otherwise nil.
 func (ech *Chan[T]) Err() error {
 	ech.Wait()
 	return ech.err

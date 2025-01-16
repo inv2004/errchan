@@ -61,8 +61,8 @@ func (ech *Chan[T]) Err() error {
 	return ech.err
 }
 
-// Just waits for related goroutes to finish. [Chan.Err] method call is too.
-// It can be used with defer to hold your code in case of early return from your function before calling [Chan.Err].
+// Just waits for related goroutes to finish. [Chan.Err] method calls is too.
+// It can be used with defer if you want to be sure that all goroutines are done in case of early return from your function before calling [Chan.Err].
 func (ech *Chan[T]) Wait() {
 	ech.done()
 	ech.wgDone.Wait()

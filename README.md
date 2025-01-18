@@ -29,9 +29,9 @@ import (
 )
 
 func reader(ctx context.Context) *errchan.Chan[int] {
-    ech := errchan.WithContext[int](ctx, 10)
+    ech, ctx := errchan.WithContext[int](ctx, 10)
 
-    ech.Go(func(ctx context.Context, ch chan<- int) error {
+    ech.Go(func(ch chan<- int) error {
         // ctx is unused here, because just one goroutine
         for i := 1; i <= 3; i++ {
             ch <- i

@@ -15,7 +15,7 @@ There are some helpers like https://pkg.go.dev/golang.org/x/sync/errgroup but th
 The main motivation is to have create a structure that can be returned as a channel from any function and takes care of all the stuff like creating, closing and error-control for the called goroutine, which can be difficult and tricky if you implement it using just basic types.
 
 # Example:
-https://go.dev/play/p/dI40gU9DeZT
+https://go.dev/play/p/QktbZrM0CP0
 
 ```go
 package main

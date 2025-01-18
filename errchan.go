@@ -9,38 +9,36 @@ import (
 
 // The Chan struct creates a channel and a context which can be filled with one or more goroutines working on the same [errchan.Chan]
 type Chan[T any] struct {
-	ctx       context.Context
-	ch        chan T
-	cancel    func()
-	err       error
-	runOnce   sync.Once
-	errOnce   sync.Once
-	drainOnce sync.Once
-	wgGo      sync.WaitGroup
-	wgDone    sync.WaitGroup
+	ch      chan T
+	cancel  func()
+	err     error
+	runOnce sync.Once
+	errOnce sync.Once
+	wgGo    sync.WaitGroup
+	wgDone  sync.WaitGroup
 }
 
 // Creates a new [errchan.Chan] with context.
 // bufsize - 0 to make buffered, >0 to make unbuffered channel. One of the reasons for the package was to use with buffered channels with slow reader and(or) writer in parallel-async mode
-func WithContext[T any](ctx context.Context, bufSize int) *Chan[T] {
+// The context will be cancelled if any related goroutines return an error.
+func WithContext[T any](ctx context.Context, bufSize int) (*Chan[T], context.Context) {
 	cctx, cancel := context.WithCancel(ctx)
 
 	ech := &Chan[T]{
-		ctx:    cctx,
 		cancel: cancel,
 		ch:     make(chan T, bufSize),
 	}
-	return ech
+	return ech, cctx
 }
 
 // Starts a goroutine with a function that can return an error and receives a write channel and a context which can be cancelled.
 // The first goroutine returns error can be extracted with [Chan.Err] later.
 // The channel automatically closes after all related goroutines complete.
-func (ech *Chan[T]) Go(fn func(ctx context.Context, ch chan<- T) error) {
+func (ech *Chan[T]) Go(fn func(ch chan<- T) error) {
 	ech.wgGo.Add(1)
 	go func() {
 		defer ech.wgGo.Done()
-		if err := fn(ech.ctx, ech.ch); err != nil {
+		if err := fn(ech.ch); err != nil {
 			ech.errOnce.Do(func() {
 				ech.err = err
 				ech.cancel()

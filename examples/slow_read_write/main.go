@@ -10,9 +10,9 @@ import (
 )
 
 func slowReader(ctx context.Context) *errchan.Chan[int] {
-	ech := errchan.WithContext[int](ctx, 10)
+	ech, ctx := errchan.WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 1; i <= 3; i++ {
 			time.Sleep(1 * time.Second)
 			ch <- i

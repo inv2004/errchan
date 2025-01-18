@@ -30,16 +30,16 @@ func checkErrChan[T any](ech *Chan[T], expErr error, expClose bool) error {
 
 func TestGoReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 0)
+	ech, ctx := WithContext[int](ctx, 0)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			ch <- i
 		}
 		return nil
 	})
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -65,9 +65,9 @@ func TestGoReadErr(t *testing.T) {
 
 func TestGoReadErr1(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 0)
+	ech, ctx := WithContext[int](ctx, 0)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			ch <- i
 			time.Sleep(10 * time.Millisecond)
@@ -78,7 +78,7 @@ func TestGoReadErr1(t *testing.T) {
 		return nil
 	})
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
 			time.Sleep(50 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -90,7 +90,7 @@ func TestGoReadErr1(t *testing.T) {
 	})
 
 	expErr := errors.New("failFirst")
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		return expErr
 	})
 
@@ -109,9 +109,9 @@ func TestGoReadErr1(t *testing.T) {
 
 func TestGoReadErr2(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 0)
+	ech, ctx := WithContext[int](ctx, 0)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -125,7 +125,7 @@ func TestGoReadErr2(t *testing.T) {
 		return nil
 	})
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 4; i <= 8; i++ {
 			time.Sleep(20 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -137,7 +137,7 @@ func TestGoReadErr2(t *testing.T) {
 	})
 
 	expErr := errors.New("failFirst")
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		return expErr
 	})
 
@@ -157,9 +157,9 @@ func TestGoReadErr2(t *testing.T) {
 
 func TestGoWOReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -177,10 +177,10 @@ func TestGoWOReadErr(t *testing.T) {
 
 func TestGoWOReadErr1(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
 	expErr := errors.New("failOne")
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -201,7 +201,7 @@ func TestGoWOReadErr1(t *testing.T) {
 
 func TestWOGoReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 0)
+	ech, ctx := WithContext[int](ctx, 0)
 
 	acc := 0
 	for x := range ech.Chan() {
@@ -219,7 +219,7 @@ func TestWOGoReadErr(t *testing.T) {
 
 func TestWOGoWOReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 0)
+	ech, ctx := WithContext[int](ctx, 0)
 
 	if err := checkErrChan(ech, nil, true); err != nil {
 		t.Fatal(err)
@@ -228,9 +228,9 @@ func TestWOGoWOReadErr(t *testing.T) {
 
 func TestGoErrRead(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			time.Sleep(10 * time.Millisecond)
 			if ctx.Err() != nil {
@@ -257,7 +257,7 @@ func TestGoErrRead(t *testing.T) {
 
 func TestWOGoErrRead(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 0)
+	ech, ctx := WithContext[int](ctx, 0)
 
 	if ech.Err() != nil {
 		t.Fatal("Error was not expected")
@@ -275,9 +275,9 @@ func TestWOGoErrRead(t *testing.T) {
 
 func TestGoDelayReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -304,9 +304,9 @@ func TestGoDelayReadErr(t *testing.T) {
 
 func TestGoDelayReadDelayReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -335,9 +335,9 @@ func TestGoDelayReadDelayReadErr(t *testing.T) {
 
 func TestGoDelayGo(t *testing.T) {
 	ctx := context.Background()
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 0; i <= 3; i++ {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -349,7 +349,7 @@ func TestGoDelayGo(t *testing.T) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		for i := 4; i <= 7; i++ {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -374,9 +374,9 @@ func TestGoDelayGo(t *testing.T) {
 }
 
 func writer(ctx context.Context) *Chan[int] {
-	ech := WithContext[int](ctx, 10)
+	ech, ctx := WithContext[int](ctx, 10)
 
-	ech.Go(func(ctx context.Context, ch chan<- int) error {
+	ech.Go(func(ch chan<- int) error {
 		time.Sleep(10 * time.Millisecond)
 		for i := 1; i <= 3; i++ {
 			ch <- i

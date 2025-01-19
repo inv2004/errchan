@@ -1,5 +1,6 @@
-// The package handles work, channels, error-handling and context cancellation under the same hood
-// it is like the [pkg/golang.org/x/sync/errgroup] with addition channels and context
+// The package handles work, channels, error-handling and context cancellation under the same hood.
+// One of the reasons for the package was to use with buffered channels with slow reader and(or) writer in parallel-async mode.
+// It is like the [pkg/golang.org/x/sync/errgroup] with addition channels and context
 package errchan
 
 import (
@@ -19,7 +20,7 @@ type Chan[T any] struct {
 }
 
 // Creates a new [errchan.Chan] with context.
-// bufsize - 0 to make buffered, >0 to make unbuffered channel. One of the reasons for the package was to use with buffered channels with slow reader and(or) writer in parallel-async mode
+// bufsize - 0 to make buffered, >0 to make unbuffered channel.
 // The context will be cancelled if any related goroutines return an error.
 func WithContext[T any](ctx context.Context, bufSize int) (*Chan[T], context.Context) {
 	cctx, cancel := context.WithCancel(ctx)

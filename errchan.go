@@ -79,3 +79,7 @@ func (ech *Chan[T]) done() {
 		}()
 	})
 }
+
+func (ech *Chan[T]) Cancel() {
+	ech.cancel()
+}

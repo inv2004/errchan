@@ -201,7 +201,7 @@ func TestGoWOReadErr1(t *testing.T) {
 
 func TestWOGoReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech, ctx := WithContext[int](ctx, 0)
+	ech, _ := WithContext[int](ctx, 0)
 
 	acc := 0
 	for x := range ech.Chan() {
@@ -219,7 +219,7 @@ func TestWOGoReadErr(t *testing.T) {
 
 func TestWOGoWOReadErr(t *testing.T) {
 	ctx := context.Background()
-	ech, ctx := WithContext[int](ctx, 0)
+	ech, _ := WithContext[int](ctx, 0)
 
 	if err := checkErrChan(ech, nil, true); err != nil {
 		t.Fatal(err)
@@ -257,7 +257,7 @@ func TestGoErrRead(t *testing.T) {
 
 func TestWOGoErrRead(t *testing.T) {
 	ctx := context.Background()
-	ech, ctx := WithContext[int](ctx, 0)
+	ech, _ := WithContext[int](ctx, 0)
 
 	if ech.Err() != nil {
 		t.Fatal("Error was not expected")
@@ -374,7 +374,7 @@ func TestGoDelayGo(t *testing.T) {
 }
 
 func writer(ctx context.Context) *Chan[int] {
-	ech, ctx := WithContext[int](ctx, 10)
+	ech, _ := WithContext[int](ctx, 10)
 
 	ech.Go(func(ch chan<- int) error {
 		time.Sleep(10 * time.Millisecond)
